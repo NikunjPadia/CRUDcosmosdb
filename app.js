@@ -63,6 +63,16 @@ async function addData(Student) {
     await Student.insertMany([king, mamba, hitman, boom, jordan, god]);
 }
 
+async function updateData(Student) {
+    try {
+        const result = await Student.updateOne({ "name": "Virat Kohli" }, { "class": 15 });
+        console.log(result);
+    }
+    catch (err) {
+        console.log(err);
+    }
+}
+
 async function start() {
     dotenv.config({ path: "./config.env" });
     const connectionString = process.env.ConnectionString;
@@ -92,15 +102,10 @@ async function start() {
     // Reading from DB
     readData(Student);
 
-    // // Updating the DB
+    // Updating the DB
+    await updateData(Student);
+    readData(Student);
 
-    // try {
-    //     const result = await Student.updateOne({ "name": "Virat Kohli" }, { "class": 15 });
-    //     console.log(result);
-    // }
-    // catch (err) {
-    //     console.log(err);
-    // }
 
     // // Deleting from the DB
     // try {
