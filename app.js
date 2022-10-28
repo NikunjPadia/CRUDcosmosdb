@@ -1,14 +1,12 @@
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
+const express = require("express");
 
-function readData(Student) {
-    Student.find({}, { "name": 1, "prn": 1, "class": 1, "_id": 0 }, function (err, res) {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log(res);
-        }
-    });
+async function readData(Student) {
+
+    let query = Student.find({}, { "name": 1, "prn": 1, "class": 1, "_id": 0 });
+    let result = await query.exec();
+    return result;
 }
 
 
@@ -77,14 +75,10 @@ async function start() {
     dotenv.config({ path: "./config.env" });
     const connectionString = process.env.ConnectionString;
 
-    try {
-        mongoose.connect(connectionString).then(function () {
-            console.log("Connection Successfull");
-        });
-    }
-    catch (err) {
-        console.log(err);
-    }
+
+    mongoose.connect(connectionString).then(function () {
+        console.log("Connection Successfull");
+    });
 
     const studentSchema = new mongoose.Schema({
         name: String,
@@ -93,18 +87,24 @@ async function start() {
     });
 
     const Student = mongoose.model("Student", studentSchema);
-
     // // Inserting into DB
     // await addData(Student);
 
 
 
     // Reading from DB
-    readData(Student);
+    let cosmosData = await readData(Student);
+    let finalResult = [];
+    for (let i = 0; i < cosmosData.length; i++) {
+        let temp = `Name: ${cosmosData[i].name}, PRN: ${cosmosData[i].prn}, Class: ${cosmosData[i].class}`;
+        finalResult.push(temp);
+    }
+
+    return finalResult;
 
     // Updating the DB
-    await updateData(Student);
-    readData(Student);
+    // await updateData(Student);
+    // readData(Student);
 
 
     // // Deleting from the DB
@@ -117,4 +117,10 @@ async function start() {
     // }
 }
 
-start();
+const app = express();
+app.set("view engine", "ejs");
+
+app.get("/", async function (req, res) {
+    let finalResult = await start();
+    res.render("index", { finalResult: finalResult });
+});
